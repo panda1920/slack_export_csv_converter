@@ -8,8 +8,10 @@ packages = [{include = "slack_export_csv_converter"}]
 
 [tool.poetry.dependencies]
 python = "^3.8"
-pytest = "^7.2.1"
 
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^7.2.1"
 
 [build-system]
 requires = ["poetry-core"]
