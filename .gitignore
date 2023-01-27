@@ -6,6 +6,7 @@
 
 # ignore caches
 **/__pycache__
+.pytest_cache/
 
 # specific editor related files
 *.code-workspace
