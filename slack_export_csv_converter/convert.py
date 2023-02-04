@@ -1,7 +1,9 @@
 print("Hello world!")
 
+
 def return_hello():
-  return "hello"
+    return "hello"
+
 
 # expect a path
 # use the path to discover channels folder and its files
@@ -12,7 +14,7 @@ def return_hello():
 
 # what components should there be
 # component that deals with directory structure
-# component that parses/reads the files
-# component that delas with data conversion -> directory
-# component that writes object -> directory, 
+# component that reads/writes file
+# component that deals with message data conversion
+# component that deals with attachment data generation/conversion?
 # logger
