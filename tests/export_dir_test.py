@@ -33,7 +33,7 @@ class TestExportDir:
             ExportDir(nonexisting)
 
     def shouldReturnUsersFilePath(self, export_dir: ExportDir, tmp_path: Path):
-        expected_users_file = tmp_path / ExportDir.USERS_FILE_NAME
+        expected_users_file = tmp_path / ExportDir._USERS_FILE_NAME
         expected_users_file.touch()
 
         users_file = export_dir.get_users_file()
