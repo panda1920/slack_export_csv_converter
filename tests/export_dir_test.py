@@ -63,7 +63,9 @@ class TestExportDir:
         assert len(channel_dirs) == len(expected_channel_dirs)
         assert channel_dirs == expected_channel_dirs
 
-    def shouldReturnMessagesForChannel(self, export_dir: ExportDir, create_channels: List[Path]):
+    def shouldReturnMessagesForChannel(
+        self, export_dir: ExportDir, create_channels: List[Path]
+    ):
         channel_1 = create_channels[0].stem
         channel_2 = create_channels[1].stem
 
@@ -135,7 +137,9 @@ class TestExportDir:
         with pytest.raises(ConverterException):
             export_dir.get_message_files("NON_EXISTANT_CHANNEL")
 
-    def shouldGetChannelPathFromName(self, export_dir: ExportDir, create_channels: List[Path]):
+    def shouldGetChannelPathFromName(
+        self, export_dir: ExportDir, create_channels: List[Path]
+    ):
         for expected_channel_path in create_channels:
             channel_name = expected_channel_path.stem
 

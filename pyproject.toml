@@ -16,7 +16,7 @@ flake8 = "^6.0.0"
 black = "^22.12.0"
 
 [tool.black]
-line-length = 100
+line-length = 90
 
 
 [build-system]

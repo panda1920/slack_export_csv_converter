@@ -5,5 +5,5 @@ extend-ignore =
   E111,
   # white spaces before ,:;
   E203
-max-line-length = 100
+max-line-length = 90
 max-complexity = 10
