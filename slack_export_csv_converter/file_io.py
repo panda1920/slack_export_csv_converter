@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import json
+import logging
 from csv import DictWriter, QUOTE_ALL
 from pathlib import Path
 from typing import Any, Dict, List
@@ -9,7 +10,9 @@ from slack_export_csv_converter.exceptions import ConverterException
 
 class FileIO:
     """
-    This is a class that absratcts away all file IO related operations
+    This is a class that absratcts away all file IO related operations.
+    Makes consumers of this class more testable by isolating the file related
+    responsibilities here.
     """
 
     # format information consumed by csv writer
@@ -31,6 +34,7 @@ class FileIO:
         Returns:
             A dictionary representation of the json file content
         """
+        logging.debug(f"Reading file {str(file_path)}")
         try:
             with file_path.open("r", encoding="utf-8") as fp:
                 return json.load(fp)
@@ -47,15 +51,16 @@ class FileIO:
         """Writes data to a file in csv format.
 
         Args:
-            file_path: file path of the file to be written to
+            file_path: path of the file to be written to
             fields: column names the csv file should have, placed on the first row
             data: data to write, each row dict must have keys defined in 'fields'
             append: a flag to tell whether the 'file_path' should be appended or created
-                newly
+                newly during write
 
         Returns:
             None
         """
+        logging.debug(f"Writing to file {str(file_path)}")
         write_mode = "w" if append is False else "a"
         try:
             with file_path.open(write_mode, encoding="utf-8", newline="") as fp:

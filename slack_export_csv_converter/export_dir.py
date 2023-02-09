@@ -54,7 +54,7 @@ class ExportDir:
         found_paths = [path for path in channel_paths if path.stem == channel]
 
         if len(found_paths) < 1:
-            raise ConverterException(f"channel {channel} does not exist")
+            raise ConverterException(f"チャンネル名 {channel} は存在しません")
 
         return found_paths[0]
 
@@ -68,7 +68,7 @@ class ExportDir:
             path to message files
         """
         channel_path = self._export_dir / channel
-        self._check_exists(channel_path, f"channel {channel} does not exist")
+        self._check_exists(channel_path, f"チャンネル名 {channel} は存在しません")
         return [
             file
             for file in channel_path.iterdir()
@@ -77,7 +77,7 @@ class ExportDir:
 
     def _check_exists(self, path: Path, fail_msg: Optional[str] = None) -> None:
         if fail_msg is None:
-            fail_msg = f"path {str(path)} does not exist"
+            fail_msg = f"{str(path)} が見つかりません"
 
         if not path.exists():
             raise ConverterException(fail_msg)
