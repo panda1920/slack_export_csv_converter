@@ -3,7 +3,7 @@ import json
 import logging
 from csv import DictWriter, QUOTE_ALL
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Union
 
 from slack_export_csv_converter.exceptions import ConverterException
 
@@ -25,16 +25,17 @@ class FileIO:
         "lineterminator": "\n",
     }
 
-    def read_json(self, file_path: Path) -> Dict[str, Any]:
-        """Reads content of json file and returns a dictionary
+    def read_json(self, file_path: Path) -> Union[Dict[str, Any], List[Any]]:
+        """Reads content of json file and returns its content
 
         Args:
             file_path: path to the file to read
 
         Returns:
-            A dictionary representation of the json file content
+            An object representation of json file
         """
         logging.debug(f"Reading file {str(file_path)}")
+
         try:
             with file_path.open("r", encoding="utf-8") as fp:
                 return json.load(fp)
@@ -61,6 +62,7 @@ class FileIO:
             None
         """
         logging.debug(f"Writing to file {str(file_path)}")
+
         write_mode = "w" if append is False else "a"
         try:
             with file_path.open(write_mode, encoding="utf-8", newline="") as fp:

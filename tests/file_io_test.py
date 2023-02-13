@@ -5,6 +5,8 @@ from pathlib import Path
 from slack_export_csv_converter.file_io import FileIO
 from slack_export_csv_converter.exceptions import ConverterException
 
+# maybe have an option to specify write encoding?
+
 
 class TestFileIO:
     @pytest.fixture(scope="function")
@@ -31,6 +33,8 @@ class TestFileIO:
 
         data = file_io.read_json(test_file)
 
+        assert isinstance(data, dict)
+
         assert data["hello"] == test_json_data["hello"]
         assert data["value"] == test_json_data["value"]
         assert data["boolean"] == test_json_data["boolean"]
@@ -43,6 +47,28 @@ class TestFileIO:
         assert data["nested"]["x"] == test_json_data["nested"]["x"]
         assert data["nested"]["y"] == test_json_data["nested"]["y"]
         assert data["nested"]["z"] == test_json_data["nested"]["z"]
+
+    def shouldReadListJsonFile(self, tmp_path: Path, file_io: FileIO):
+        test_json_data_string = """[
+            1,
+            2,
+            3,
+            4,
+            "hello",
+            "example.com"
+        ]"""
+        test_json_data = json.loads(test_json_data_string)
+        test_file = tmp_path / "test.json"
+        test_file.touch()
+        with test_file.open("w", encoding="utf-8") as fp:
+            fp.write(test_json_data_string)
+
+        data = file_io.read_json(test_file)
+
+        assert isinstance(data, list)
+
+        for data, expected_data in zip(data, test_json_data):
+            assert data == expected_data
 
     def shouldThrowWhenInvalidJsonFile(self, tmp_path: Path, file_io: FileIO):
         test_file = tmp_path / "test.json"
