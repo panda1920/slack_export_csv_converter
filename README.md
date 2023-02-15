@@ -23,17 +23,22 @@ Make sure to replace the paths appropriately.
 python3 /location/of/script/slack_export_csv_converter/main.py /location/of/export
 ```
 
-This will create a folder in the cwd of your terminal.  
-All the converted CSV files of the exported messages, and additionally the attachment files of the messages (if any), will be stored in this folder.  
+This will create a directory in the cwd of your terminal.  
+All the converted CSV files of the exported messages, and additionally the attachment files of the messages (if any), will be stored in this directory.  
 The exported files will remain intact.
 
-Optionally you may pass a seceond argument to the script to explicitly designate where to newly create the folder at, instead of the default cwd.
+Optionally you may pass a seceond argument to the script to explicitly designate where to newly create the directory at, instead of the default cwd.
 
 ```bash
-python3 /location/of/script/slack_export_csv_converter/main.py /location/of/export /location/to/create/folder
+python3 /location/of/script/slack_export_csv_converter/main.py /location/of/export /location/to/create/directory
 ```
 
-## Structure of created folder
+## Description of created files and directories
+
+### Directory structure
+
+`XXXXXXX` is the name of directory containing the slack export.
+Within the created directory, there will be separate directories for each slack channel.
 
 ```
 csv_converted_XXXXXXX/
@@ -53,3 +58,28 @@ csv_converted_XXXXXXX/
 │   └── ...
 └── ...
 ```
+
+### messages.csv
+
+Contains all messages belonging to the specific channel.
+
+| field name | description                                                                                          |
+| ---------- | ---------------------------------------------------------------------------------------------------- |
+| ts         | timestamp of message                                                                                 |
+| 投稿日時   | ts converted to local time                                                                           |
+| ユーザー   | name of user that posted the message                                                                 |
+| テキスト   | text representation of posted message                                                                |
+| thread_ts  | timestamp of the message that started the thread. Only populated if this message belongs to a thread |
+
+### attachments.csv
+
+Contains information about all attachment files found in the specific channel.
+
+| field name       | description                                      |
+| ---------------- | ------------------------------------------------ |
+| ts               | timestamp of uploaded file                       |
+| アップロード日時 | ts converted to local time                       |
+| ユーザー         | name of user that uploaded the attached file     |
+| message_ts       | ts value of the message the file was attached to |
+| url              | download url of the file                         |
+| ファイル名       | filename of the downloaded file                  |
