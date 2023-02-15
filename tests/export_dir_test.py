@@ -10,30 +10,40 @@ class TestExportDir:
     TEST_CHANNELS = ["channel1", "チャンネル2", "channel 三"]
 
     @pytest.fixture(scope="function")
-    def export_dir(self, tmp_path) -> ExportDir:
-        return ExportDir(tmp_path)
+    def export_path(self, tmp_path) -> Path:
+        path = tmp_path / "export"
+        path.mkdir()
+        return path
 
     @pytest.fixture(scope="function")
-    def create_channels(self, tmp_path: Path) -> List[Path]:
+    def csv_path(self, tmp_path) -> Path:
+        return tmp_path / "csv"
+
+    @pytest.fixture(scope="function")
+    def export_dir(self, export_path, csv_path) -> ExportDir:
+        return ExportDir(export_path, csv_path)
+
+    @pytest.fixture(scope="function")
+    def create_channels(self, export_path: Path) -> List[Path]:
         channel_paths = []
         for channel in self.TEST_CHANNELS:
-            channel_path = tmp_path / channel
+            channel_path = export_path / channel
             channel_path.mkdir()
             channel_paths.append(channel_path)
 
         return channel_paths
 
-    def shouldAcceptPathForCtor(self, tmp_path):
-        ExportDir(tmp_path)
+    def shouldAcceptPathForCtor(self, export_path, csv_path):
+        ExportDir(export_path, csv_path)
 
-    def shouldThrowWhenNonexistantCtorPath(self):
+    def shouldThrowWhenNonexistantCtorPath(self, csv_path):
         nonexisting = Path("/some/random/path/not/exist/123123123/")
 
         with pytest.raises(ConverterException):
-            ExportDir(nonexisting)
+            ExportDir(nonexisting, csv_path)
 
-    def shouldReturnUsersFilePath(self, export_dir: ExportDir, tmp_path: Path):
-        expected_users_file = tmp_path / ExportDir._USERS_FILE_NAME
+    def shouldReturnUsersFilePath(self, export_dir: ExportDir, export_path: Path):
+        expected_users_file = export_path / ExportDir._USERS_FILE_NAME
         expected_users_file.touch()
 
         users_file = export_dir.get_users_file()
@@ -44,27 +54,28 @@ class TestExportDir:
         with pytest.raises(ConverterException):
             export_dir.get_users_file()
 
-    def shouldReturnChannelDirs(self, export_dir: ExportDir, tmp_path: Path):
-        expected_channel_dirs = [tmp_path / channel for channel in self.TEST_CHANNELS]
-        for dir in expected_channel_dirs:
+    def shouldReturnChannelNames(self, export_path: Path, csv_path: Path):
+        channel_path = [export_path / channel for channel in self.TEST_CHANNELS]
+        for dir in channel_path:
             dir.mkdir()
+        export_dir = ExportDir(export_path, csv_path)
 
-        channel_dirs = export_dir.get_channel_dirs()
+        channel_dirs = export_dir.get_channels()
 
-        assert len(channel_dirs) == len(expected_channel_dirs)
+        assert len(channel_dirs) == len(self.TEST_CHANNELS)
         for dir in channel_dirs:
-            assert dir in expected_channel_dirs
+            assert dir in self.TEST_CHANNELS
 
     def shouldReturnEmptyListWhenNoChannel(self, export_dir: ExportDir):
-        expected_channel_dirs = []
+        expected_channel_names = []
 
-        channel_dirs = export_dir.get_channel_dirs()
+        channel_dirs = export_dir.get_channels()
 
-        assert len(channel_dirs) == len(expected_channel_dirs)
-        assert channel_dirs == expected_channel_dirs
+        assert len(channel_dirs) == len(expected_channel_names)
+        assert channel_dirs == expected_channel_names
 
     def shouldReturnMessagesForChannel(
-        self, export_dir: ExportDir, create_channels: List[Path]
+        self, create_channels: List[Path], export_dir: ExportDir
     ):
         channel_1 = create_channels[0].stem
         channel_2 = create_channels[1].stem
@@ -99,7 +110,7 @@ class TestExportDir:
             assert file in files_2
 
     def shouldOnlyReturnJsonFilesForMessage(
-        self, export_dir: ExportDir, create_channels: List[Path]
+        self, create_channels: List[Path], export_dir: ExportDir
     ):
         channel = create_channels[0].stem
 
@@ -125,30 +136,68 @@ class TestExportDir:
             assert file in json_files
 
     def shouldReturnNoMessagesWhenChannelEmpty(
-        self, export_dir: ExportDir, create_channels: List[Path]
+        self, create_channels: List[Path], export_dir: ExportDir
     ):
         assert len(export_dir.get_message_files(self.TEST_CHANNELS[0])) == 0
         assert len(export_dir.get_message_files(self.TEST_CHANNELS[1])) == 0
         assert len(export_dir.get_message_files(self.TEST_CHANNELS[2])) == 0
 
     def shouldThrowWhenChannelNotExistForGetMessage(
-        self, export_dir: ExportDir, create_channels: List[Path]
+        self, create_channels: List[Path], export_dir: ExportDir
     ):
         with pytest.raises(ConverterException):
             export_dir.get_message_files("NON_EXISTANT_CHANNEL")
 
-    def shouldGetChannelPathFromName(
-        self, export_dir: ExportDir, create_channels: List[Path]
+    def shouldGetCSVChannelPathFromName(
+        self,
+        tmp_path: Path,
+        export_path: Path,
+        create_channels: List[Path],
     ):
-        for expected_channel_path in create_channels:
-            channel_name = expected_channel_path.stem
+        expected_csv_path = tmp_path / "some" / "path"
+        export_dir = ExportDir(export_path, expected_csv_path)
 
-            channel_path = export_dir.get_channel_path(channel_name)
+        for channel in self.TEST_CHANNELS:
+            expected_path = expected_csv_path / channel
 
-            assert channel_path == expected_channel_path
+            csv_channel_path = export_dir.get_csv_channel_path(channel)
 
-    def shouldThrowWhenGetChannelPathNotExist(
-        self, export_dir: ExportDir, create_channels: List[Path]
+            assert csv_channel_path == expected_path
+
+    def shouldCreateCSVChannelPathFromName(
+        self, create_channels: List[Path], export_dir: ExportDir
+    ):
+        for channel in self.TEST_CHANNELS:
+            csv_channel_path = export_dir.get_csv_channel_path(channel)
+
+            assert csv_channel_path.exists()
+
+    def shouldThrowWhenGetCSVChannelPathNotExist(
+        self, create_channels: List[Path], export_dir: ExportDir
     ):
         with pytest.raises(ConverterException):
-            export_dir.get_channel_path("NON_EXISTANT_CHANNEL")
+            export_dir.get_csv_channel_path("NON_EXISTANT_CHANNEL")
+
+    def shouldGetAttachmentsPathFromChannelName(
+        self, csv_path: Path, create_channels: List[Path], export_dir: ExportDir
+    ):
+        for channel in self.TEST_CHANNELS:
+            expected_path = csv_path / channel / "attachments"
+
+            attachments_path = export_dir.get_attachments_path(channel)
+
+            assert attachments_path == expected_path
+
+    def shouldCreateAttachmentsPathFromChannelName(
+        self, create_channels: List[Path], export_dir: ExportDir
+    ):
+        for channel in self.TEST_CHANNELS:
+            attachments_path = export_dir.get_attachments_path(channel)
+
+            assert attachments_path.exists()
+
+    def shouldThrowWhenChannelForAttachmentPathNotExist(
+        self, create_channels: List[Path], export_dir: ExportDir
+    ):
+        with pytest.raises(ConverterException):
+            export_dir.get_attachments_path("NON_EXISTANT_CHANNEL")
