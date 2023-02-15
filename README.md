@@ -65,21 +65,21 @@ Contains all messages belonging to the specific channel.
 
 | field name | description                                                                                          |
 | ---------- | ---------------------------------------------------------------------------------------------------- |
-| ts         | timestamp of message                                                                                 |
-| 投稿日時   | ts converted to local time                                                                           |
-| ユーザー   | name of user that posted the message                                                                 |
-| テキスト   | text representation of posted message                                                                |
-| thread_ts  | timestamp of the message that started the thread. Only populated if this message belongs to a thread |
+| ts         | Timestamp of message                                                                                 |
+| 投稿日時   | `ts` converted to local time                                                                         |
+| ユーザー   | Name of user that posted the message                                                                 |
+| テキスト   | Text representation of posted message                                                                |
+| thread_ts  | `ts` of the message that started the thread.<br />Only populated if this message belongs to a thread |
 
 ### attachments.csv
 
 Contains information about all attachment files found in the specific channel.
 
-| field name       | description                                      |
-| ---------------- | ------------------------------------------------ |
-| ts               | timestamp of uploaded file                       |
-| アップロード日時 | ts converted to local time                       |
-| ユーザー         | name of user that uploaded the attached file     |
-| message_ts       | ts value of the message the file was attached to |
-| url              | download url of the file                         |
-| ファイル名       | filename of the downloaded file                  |
+| field name       | description                                        |
+| ---------------- | -------------------------------------------------- |
+| ts               | Timestamp of uploaded file                         |
+| アップロード日時 | `ts` converted to local time                       |
+| ユーザー         | Name of user that uploaded the attached file       |
+| message_ts       | `ts` value of the message the file was attached to |
+| url              | Downloadable url of the file                       |
+| ファイル名       | Filename of the downloaded file                    |
