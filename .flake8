@@ -1,9 +1,10 @@
 [flake8]
 exclude = __pycache__,.git,.pytest_cache
 extend-ignore = 
-  # ignore indentation
-  E111,
   # white spaces before ,:;
   E203
 max-line-length = 90
 max-complexity = 10
+per-file-ignores =
+  # lines can be long in test files
+  tests/*:E501
