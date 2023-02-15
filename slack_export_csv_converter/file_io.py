@@ -25,6 +25,9 @@ class FileIO:
         "lineterminator": "\n",
     }
 
+    def __init__(self, csv_encoding="utf-8"):
+        self._csv_encoding = csv_encoding
+
     def read_json(self, file_path: Path) -> Union[Dict[str, Any], List[Any]]:
         """Reads content of json file and returns its content
 
@@ -65,7 +68,9 @@ class FileIO:
 
         write_mode = "w" if append is False else "a"
         try:
-            with file_path.open(write_mode, encoding="utf-8", newline="") as fp:
+            with file_path.open(
+                write_mode, encoding=self._csv_encoding, newline=""
+            ) as fp:
                 writer = DictWriter(fp, fields, **self._CSV_FORMAT)
 
                 if append is False:

@@ -5,8 +5,6 @@ from pathlib import Path
 from slack_export_csv_converter.file_io import FileIO
 from slack_export_csv_converter.exceptions import ConverterException
 
-# maybe have an option to specify write encoding?
-
 
 class TestFileIO:
     @pytest.fixture(scope="function")
@@ -184,5 +182,32 @@ class TestFileIO:
 
         assert test_file.exists()
         with test_file.open("r", encoding="utf-8") as fp:
+            file_content = fp.read()
+            assert file_content == expected_file_content
+
+    def shouldBeAbleToSpecifyEncodingOfCSVWrite(self, tmp_path: Path):
+        test_csv_data = [
+            {"column1": "こんにちは！", "column2": 123, "column3": "2030-01-01"},
+            {"column1": "ほげふが", "column2": 999, "column3": "2030-02-01"},
+            {
+                "column1": 'I went to "quoted" resteraunt',
+                "column2": -180,
+                "column3": "2030-03-01",
+            },
+        ]
+        test_csv_fields = [key for key in test_csv_data[0].keys()]
+        test_file = tmp_path / "test.csv"
+        expected_file_content = (
+            '"column1","column2","column3"\n'
+            '"こんにちは！","123","2030-01-01"\n'
+            '"ほげふが","999","2030-02-01"\n'
+            '"I went to \\"quoted\\" resteraunt","-180","2030-03-01"\n'
+        )
+        file_io = FileIO(csv_encoding="shift-jis")
+
+        file_io.csv_write(test_file, test_csv_fields, test_csv_data)
+
+        assert test_file.exists()
+        with test_file.open("r", encoding="shift-jis") as fp:
             file_content = fp.read()
             assert file_content == expected_file_content
