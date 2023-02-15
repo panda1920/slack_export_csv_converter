@@ -14,12 +14,12 @@ class ExportDir:
 
     _USERS_FILE_NAME = "users.json"
 
-    def __init__(self, export_dir: Path, csv_path: Path):
-        self._check_exists(export_dir)
-        self._export_dir = export_dir
-        self._csv_path = csv_path
+    def __init__(self, export_path: Path, save_path: Path) -> None:
+        self._check_exists(export_path)
+        self._export_path = export_path
+        self._csv_path = save_path / f"csv_converted_{str(export_path.stem)}"
         self._channel_paths = [
-            dir.stem for dir in self._export_dir.iterdir() if dir.is_dir()
+            dir.stem for dir in self._export_path.iterdir() if dir.is_dir()
         ]
 
     def get_users_file(self) -> Path:
@@ -28,7 +28,7 @@ class ExportDir:
         Returns:
             Path to a json file containing user information
         """
-        users_file = self._export_dir / self._USERS_FILE_NAME
+        users_file = self._export_path / self._USERS_FILE_NAME
         self._check_exists(users_file)
 
         return users_file
@@ -50,7 +50,7 @@ class ExportDir:
         Returns:
             path to message json files
         """
-        channel_path = self._export_dir / channel
+        channel_path = self._export_path / channel
         self._check_exists(channel_path, f"チャンネル名 {channel} は存在しません")
         return [
             file

@@ -11,17 +11,17 @@ class TestExportDir:
 
     @pytest.fixture(scope="function")
     def export_path(self, tmp_path) -> Path:
-        path = tmp_path / "export"
+        path = tmp_path / "XXX Slack export Jan 1 2022 - Jan 1 2023"
         path.mkdir()
         return path
 
     @pytest.fixture(scope="function")
-    def csv_path(self, tmp_path) -> Path:
-        return tmp_path / "csv"
+    def save_path(self, tmp_path) -> Path:
+        return tmp_path / "some" / "dir"
 
     @pytest.fixture(scope="function")
-    def export_dir(self, export_path, csv_path) -> ExportDir:
-        return ExportDir(export_path, csv_path)
+    def export_dir(self, export_path, save_path) -> ExportDir:
+        return ExportDir(export_path, save_path)
 
     @pytest.fixture(scope="function")
     def create_channels(self, export_path: Path) -> List[Path]:
@@ -33,14 +33,14 @@ class TestExportDir:
 
         return channel_paths
 
-    def shouldAcceptPathForCtor(self, export_path, csv_path):
-        ExportDir(export_path, csv_path)
+    def shouldAcceptPathForCtor(self, export_path, save_path):
+        ExportDir(export_path, save_path)
 
-    def shouldThrowWhenNonexistantCtorPath(self, csv_path):
+    def shouldThrowWhenNonexistantCtorPath(self, export_path: Path, save_path: Path):
         nonexisting = Path("/some/random/path/not/exist/123123123/")
 
         with pytest.raises(ConverterException):
-            ExportDir(nonexisting, csv_path)
+            ExportDir(nonexisting, save_path)
 
     def shouldReturnUsersFilePath(self, export_dir: ExportDir, export_path: Path):
         expected_users_file = export_path / ExportDir._USERS_FILE_NAME
@@ -54,11 +54,11 @@ class TestExportDir:
         with pytest.raises(ConverterException):
             export_dir.get_users_file()
 
-    def shouldReturnChannelNames(self, export_path: Path, csv_path: Path):
+    def shouldReturnChannelNames(self, export_path: Path, save_path: Path):
         channel_path = [export_path / channel for channel in self.TEST_CHANNELS]
         for dir in channel_path:
             dir.mkdir()
-        export_dir = ExportDir(export_path, csv_path)
+        export_dir = ExportDir(export_path, save_path)
 
         channel_dirs = export_dir.get_channels()
 
@@ -150,12 +150,12 @@ class TestExportDir:
 
     def shouldGetCSVChannelPathFromName(
         self,
-        tmp_path: Path,
         export_path: Path,
+        save_path: Path,
         create_channels: List[Path],
     ):
-        expected_csv_path = tmp_path / "some" / "path"
-        export_dir = ExportDir(export_path, expected_csv_path)
+        export_dir = ExportDir(export_path, save_path)
+        expected_csv_path = save_path / f"csv_converted_{str(export_path.stem)}"
 
         for channel in self.TEST_CHANNELS:
             expected_path = expected_csv_path / channel
@@ -179,10 +179,19 @@ class TestExportDir:
             export_dir.get_csv_channel_path("NON_EXISTANT_CHANNEL")
 
     def shouldGetAttachmentsPathFromChannelName(
-        self, csv_path: Path, create_channels: List[Path], export_dir: ExportDir
+        self,
+        export_path: Path,
+        save_path: Path,
+        create_channels: List[Path],
+        export_dir: ExportDir,
     ):
         for channel in self.TEST_CHANNELS:
-            expected_path = csv_path / channel / "attachments"
+            expected_path = (
+                save_path
+                / f"csv_converted_{str(export_path.stem)}"
+                / channel
+                / "attachments"
+            )
 
             attachments_path = export_dir.get_attachments_path(channel)
 
