@@ -14,20 +14,20 @@ As a bonus attachment files are downloded as well.
 ## Folder structure of converted files
 
 ```
-csv_generated
-  channel01
-    channel01.csv
-    channel01_attachments.csv
-    attachments
-      20230101_some_spreadsheet.xlsx
-      20230101_some_screenshot.jpg
-      ...
-  channel02
-    channel02.csv
-    channel02_attachments.csv
-    attachments
-      ...
-  channel03
-    ...
-  ...
+csv_converted/
+├── channel01/
+│   ├── channel01.csv
+│   ├── channel01_attachments.csv
+│   └── attachments/
+│       ├── 20230101_some_spreadsheet.xlsx
+│       ├── 20230101_some_screenshot.jpg
+│       └── ...
+├── channel02/
+│   ├── channel02.csv
+│   ├── channel02_attachments.csv
+│   └── attachments/
+│       └── ...
+├── channel03/
+│   └── ...
+└── ...
 ```
