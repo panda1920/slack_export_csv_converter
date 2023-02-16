@@ -17,9 +17,17 @@ class CSVDataGenerator:
     def __init__(self, users_data: List[Dict[str, Any]]) -> None:
         self._userid_name_mapping = {user["id"]: user["name"] for user in users_data}
 
+    def get_message_fields(self) -> List[str]:
+        """Get list of fields message csv file should have
+
+        Returns:
+            List of fields
+        """
+        return ["ts", "投稿日時", "ユーザー", "テキスト", "thread_ts"]
+
     def generate_messages(
         self, messages_data: List[Dict[str, Any]]
-    ) -> Tuple[List[str], List[Dict[str, str]]]:
+    ) -> List[Dict[str, str]]:
         """Generates csv data from messages file
 
         Args:
@@ -30,13 +38,7 @@ class CSVDataGenerator:
         """
         # logging.warning(str(messages-data))
         generated_messages = []
-        fields = [
-            "ts",
-            "投稿日時",
-            "ユーザー",
-            "テキスト",
-            "thread_ts",
-        ]
+        fields = self.get_message_fields()
 
         for message in messages_data:
             if not message["type"] == "message":
@@ -48,13 +50,21 @@ class CSVDataGenerator:
 
             generated_messages.append(generated_message)
 
-        return (fields, generated_messages)
+        return generated_messages
+
+    def get_attachment_fields(self) -> List[str]:
+        """Get list of fields attachment csv file should have
+
+        Returns:
+            List of fields
+        """
+        return ["file_ts", "アップロード日時", "ユーザー", "message_ts", "url", "ファイル名"]
 
     def generate_attachments(
         self, messages_data: List[Dict[str, Any]]
-    ) -> Tuple[List[str], List[Dict[str, str]]]:
+    ) -> List[Dict[str, str]]:
         generated_attachments = []
-        fields = ["file_ts", "アップロード日時", "ユーザー", "message_ts", "url", "ファイル名"]
+        fields = self.get_attachment_fields()
 
         for message in messages_data:
             files = message.get("files")
@@ -72,7 +82,7 @@ class CSVDataGenerator:
 
                 generated_attachments.append(generated_attachment)
 
-        return (fields, generated_attachments)
+        return generated_attachments
 
     def _convert_field(
         self,

@@ -14,15 +14,9 @@ def csv_data_generator() -> CSVDataGenerator:
     return CSVDataGenerator(TEST_USERS_DATA)
 
 
-class TestGenerateMessages:
+class TestGetMessageFields:
     def shouldReturnFieldNames(self, csv_data_generator: CSVDataGenerator):
-        test_messages_data = [
-            create_test_message_data(),
-            create_test_message_data(),
-            create_test_message_data(),
-        ]
-
-        (fields, *_) = csv_data_generator.generate_messages(test_messages_data)
+        fields = csv_data_generator.get_message_fields()
 
         assert "ts" in fields
         assert "投稿日時" in fields
@@ -30,6 +24,8 @@ class TestGenerateMessages:
         assert "テキスト" in fields
         assert "thread_ts" in fields
 
+
+class TestGenerateMessages:
     def shouldGenerateListOfData(self, csv_data_generator: CSVDataGenerator):
         test_messages_data = [
             create_test_message_data(),
@@ -37,7 +33,7 @@ class TestGenerateMessages:
             create_test_message_data(),
         ]
 
-        (_, data) = csv_data_generator.generate_messages(test_messages_data)
+        data = csv_data_generator.generate_messages(test_messages_data)
 
         assert len(data) == len(test_messages_data)
         for message in data:
@@ -54,7 +50,7 @@ class TestGenerateMessages:
             create_test_message_data(text="Some text 3", ts="1672531202.000000"),
         ]
 
-        (_, data) = csv_data_generator.generate_messages(test_messages_data)
+        data = csv_data_generator.generate_messages(test_messages_data)
 
         for message, expected_message in zip(data, test_messages_data):
             assert message["ts"] == str(expected_message["ts"])
@@ -74,7 +70,7 @@ class TestGenerateMessages:
             "2023-01-01 09:00:02",
         ]
 
-        (_, data) = csv_data_generator.generate_messages(test_messages_data)
+        data = csv_data_generator.generate_messages(test_messages_data)
 
         for message, expected_date in zip(data, expected_dates):
             assert message["投稿日時"] == expected_date
@@ -88,7 +84,7 @@ class TestGenerateMessages:
                 create_test_message_data(user=user["id"], text="some text 3"),
             ]
 
-            (_, data) = csv_data_generator.generate_messages(test_messages_data)
+            data = csv_data_generator.generate_messages(test_messages_data)
 
             for message in data:
                 assert message["ユーザー"] == user["name"]
@@ -102,7 +98,7 @@ class TestGenerateMessages:
             create_test_message_data(user="Deleted user", text="some text 3"),
         ]
 
-        (_, data) = csv_data_generator.generate_messages(test_messages_data)
+        data = csv_data_generator.generate_messages(test_messages_data)
 
         for message in data:
             assert message["ユーザー"] == "Not available"
@@ -114,7 +110,7 @@ class TestGenerateMessages:
             create_test_message_data(text="Some text 3"),
         ]
 
-        (_, data) = csv_data_generator.generate_messages(test_messages_data)
+        data = csv_data_generator.generate_messages(test_messages_data)
 
         for message, expected_message in zip(data, test_messages_data):
             assert message["テキスト"] == expected_message["text"]
@@ -134,7 +130,7 @@ class TestGenerateMessages:
             ),
         ]
 
-        (_, data) = csv_data_generator.generate_messages(test_messages_data)
+        data = csv_data_generator.generate_messages(test_messages_data)
 
         for message, expected_message in zip(data, test_messages_data):
             assert message["thread_ts"] == str(expected_message["thread_ts"])
@@ -159,7 +155,7 @@ class TestGenerateMessages:
         ]
         test_messages_data = [*threaded_data, *non_threaded_data]
 
-        (_, data) = csv_data_generator.generate_messages(test_messages_data)
+        data = csv_data_generator.generate_messages(test_messages_data)
 
         for message, expected_message in zip(data, test_messages_data):
             if message["テキスト"] == "Some text 4" or message["テキスト"] == "Some text 5":
@@ -183,7 +179,7 @@ class TestGenerateMessages:
         ]
         test_messages_data = [*message_data, *non_message_data]
 
-        (_, data) = csv_data_generator.generate_messages(test_messages_data)
+        data = csv_data_generator.generate_messages(test_messages_data)
 
         assert len(data) == len(message_data)
         for message, expected_message in zip(data, message_data):
@@ -191,15 +187,9 @@ class TestGenerateMessages:
             assert message["ts"] == str(expected_message["ts"])
 
 
-class TestGenerateAttachedFiles:
+class TestGetAttachmentFields:
     def shouldReturnFieldNames(self, csv_data_generator: CSVDataGenerator):
-        test_message_data = [
-            create_test_message_data(text="Some text 1", ts="1672531200.000000"),
-            create_test_message_data(text="Some text 2", ts="1672531201.000000"),
-            create_test_message_data(text="Some text 3", ts="1672531202.000000"),
-        ]
-
-        (fields, _) = csv_data_generator.generate_attachments(test_message_data)
+        fields = csv_data_generator.get_attachment_fields()
 
         assert "file_ts" in fields
         assert "アップロード日時" in fields
@@ -208,6 +198,8 @@ class TestGenerateAttachedFiles:
         assert "url" in fields
         assert "ファイル名" in fields
 
+
+class TestGenerateAttachedFiles:
     def shouldGenerateListOfData(self, csv_data_generator: CSVDataGenerator):
         test_files = create_test_files()
         test_message_data = [
@@ -216,7 +208,7 @@ class TestGenerateAttachedFiles:
             create_test_message_data(text="Some text 3", files=test_files[4:]),
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         assert len(data) == len(test_files)
 
@@ -228,7 +220,7 @@ class TestGenerateAttachedFiles:
             create_test_message_data(text="Some text 3", files=test_files[4:]),
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment in data:
             assert "file_ts" in attachment
@@ -248,7 +240,7 @@ class TestGenerateAttachedFiles:
             create_test_message_data(text="Some text 3", files=test_files[4:]),
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment, expected in zip(data, test_files):
             assert attachment["file_ts"] == str(expected["created"])
@@ -270,7 +262,7 @@ class TestGenerateAttachedFiles:
             "2023-01-01 09:00:04",
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment, expected_datetime in zip(data, expected_file_datetimes):
             assert attachment["アップロード日時"] == expected_datetime
@@ -296,7 +288,7 @@ class TestGenerateAttachedFiles:
             TEST_USERS_DATA[2]["name"],
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment, expected_username in zip(data, expected_usernames):
             assert attachment["ユーザー"] == expected_username
@@ -324,7 +316,7 @@ class TestGenerateAttachedFiles:
             "Not available",
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment, expected_username in zip(data, expected_usernames):
             assert attachment["ユーザー"] == expected_username
@@ -350,7 +342,7 @@ class TestGenerateAttachedFiles:
             test_message_data[2]["ts"],
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment, expected_message_ts in zip(data, expected_ts):
             assert attachment["message_ts"] == expected_message_ts
@@ -363,7 +355,7 @@ class TestGenerateAttachedFiles:
             create_test_message_data(text="Some text 3", files=test_files[4:]),
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment, test_file_data in zip(data, test_files):
             assert attachment["url"] == test_file_data["url_private"]
@@ -383,7 +375,7 @@ class TestGenerateAttachedFiles:
             f"{20230101090004}_{test_files[4]['name']}",
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment, expected_filename in zip(data, expected_filenames):
             assert attachment["ファイル名"] == expected_filename
@@ -409,7 +401,7 @@ class TestGenerateAttachedFiles:
             f"{20230101090004}_file5.png",
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment, expected_filename in zip(data, expected_filenames):
             assert attachment["ファイル名"] == expected_filename
@@ -423,7 +415,7 @@ class TestGenerateAttachedFiles:
             create_test_message_data(text="Some text 3", ts="1672531202.000000"),
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         assert len(data) == 0
 
@@ -441,7 +433,7 @@ class TestGenerateAttachedFiles:
             create_test_message_data(text="Some text 3", files=test_files[4:]),
         ]
 
-        (_, data) = csv_data_generator.generate_attachments(test_message_data)
+        data = csv_data_generator.generate_attachments(test_message_data)
 
         assert len(data) == 0
 
