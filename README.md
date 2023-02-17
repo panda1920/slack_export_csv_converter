@@ -77,8 +77,8 @@ Contains information about all attachment files found in the specific channel.
 
 | field name       | description                                        |
 | ---------------- | -------------------------------------------------- |
-| ts               | Timestamp of uploaded file                         |
-| アップロード日時 | `ts` converted to local time                       |
+| file_ts          | Timestamp of uploaded file                         |
+| アップロード日時 | `file_ts` converted to local time                  |
 | ユーザー         | Name of user that uploaded the attached file       |
 | message_ts       | `ts` value of the message the file was attached to |
 | url              | Downloadable url of the file                       |
