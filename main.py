@@ -1,10 +1,17 @@
 # -*- coding: utf-8 -*-
-print("Hello world!")
+from slack_export_csv_converter.logger import setup_logger
 
 
 def return_hello():
     return "hello"
 
+
+def main():
+    setup_logger()
+
+
+if __name__ == "__main__":
+    main()
 
 # expect a path
 # use the path to discover channels folder and its files
