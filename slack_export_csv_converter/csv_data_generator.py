@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-from typing import Dict, List, Tuple, Any, Union, Optional
+from typing import Union, Optional
 from datetime import datetime
 import re
 import urllib.parse
 
-import logging
+from .types import ExportFileContent, ExportFileElement, CSVData, CSVFields
 
 
 class CSVDataGenerator:
@@ -14,10 +14,10 @@ class CSVDataGenerator:
     promote decoupling.
     """
 
-    def __init__(self, users_data: List[Dict[str, Any]]) -> None:
+    def __init__(self, users_data: ExportFileContent) -> None:
         self._userid_name_mapping = {user["id"]: user["name"] for user in users_data}
 
-    def get_message_fields(self) -> List[str]:
+    def get_message_fields(self) -> CSVFields:
         """Get list of fields message csv file should have
 
         Returns:
@@ -25,9 +25,7 @@ class CSVDataGenerator:
         """
         return ["ts", "投稿日時", "ユーザー", "テキスト", "thread_ts"]
 
-    def generate_messages(
-        self, messages_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, str]]:
+    def generate_messages(self, messages_data: ExportFileContent) -> CSVData:
         """Generates csv data from messages file
 
         Args:
@@ -52,7 +50,7 @@ class CSVDataGenerator:
 
         return generated_messages
 
-    def get_attachment_fields(self) -> List[str]:
+    def get_attachment_fields(self) -> CSVFields:
         """Get list of fields attachment csv file should have
 
         Returns:
@@ -60,9 +58,7 @@ class CSVDataGenerator:
         """
         return ["file_ts", "アップロード日時", "ユーザー", "message_ts", "url", "ファイル名"]
 
-    def generate_attachments(
-        self, messages_data: List[Dict[str, Any]]
-    ) -> List[Dict[str, str]]:
+    def generate_attachments(self, messages_data: ExportFileContent) -> CSVData:
         generated_attachments = []
         fields = self.get_attachment_fields()
 
@@ -87,8 +83,8 @@ class CSVDataGenerator:
     def _convert_field(
         self,
         field_name: str,
-        message: Dict[str, Any],
-        attachment: Optional[Dict[str, Any]] = None,
+        message: ExportFileElement,
+        attachment: Optional[ExportFileElement] = None,
     ) -> str:
         if field_name == "ts":
             field_value = message["ts"]
@@ -123,7 +119,7 @@ class CSVDataGenerator:
     def _convert_userid(self, userid: str) -> str:
         return self._userid_name_mapping.get(userid, "Not available")
 
-    def _convert_filename(self, attachment: Dict[str, Any]) -> str:
+    def _convert_filename(self, attachment: ExportFileElement) -> str:
         date = re.sub("[- :]", "", self._convert_ts(attachment["created"]))
         name = attachment.get("name")
         if not name:

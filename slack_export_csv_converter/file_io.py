@@ -3,9 +3,10 @@ import json
 import logging
 from csv import DictWriter, QUOTE_ALL
 from pathlib import Path
-from typing import Any, Dict, List, Union
+from typing import Any, Dict, Union
 
-from slack_export_csv_converter.exceptions import ConverterException
+from .exceptions import ConverterException
+from .types import CSVData, CSVFields, ExportFileContent
 
 
 class FileIO:
@@ -25,10 +26,10 @@ class FileIO:
         "lineterminator": "\n",
     }
 
-    def __init__(self, csv_encoding="utf-8"):
+    def __init__(self, csv_encoding="utf-8") -> None:
         self._csv_encoding = csv_encoding
 
-    def read_json(self, file_path: Path) -> Union[Dict[str, Any], List[Any]]:
+    def read_json(self, file_path: Path) -> Union[Dict[str, Any], ExportFileContent]:
         """Reads content of json file and returns its content
 
         Args:
@@ -48,8 +49,8 @@ class FileIO:
     def csv_write(
         self,
         file_path: Path,
-        fields: List[str],
-        data: List[Dict[str, Any]],
+        fields: CSVFields,
+        data: CSVData,
         append: bool = False,
     ) -> None:
         """Writes data to a file in csv format.

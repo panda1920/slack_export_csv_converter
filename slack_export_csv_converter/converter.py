@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 import logging
 from pathlib import Path
-from typing import cast, List, Dict, Any, Tuple
+from typing import cast, List, Tuple
 
-from slack_export_csv_converter.export_dir import ExportDir
-from slack_export_csv_converter.file_io import FileIO
-from slack_export_csv_converter.csv_data_generator import CSVDataGenerator
+from .export_dir import ExportDir
+from .file_io import FileIO
+from .csv_data_generator import CSVDataGenerator
+from .types import CSVData, ExportFileContent
 
 
 class Converter:
@@ -52,16 +53,12 @@ class Converter:
                 csv_data_attachments,
             )
 
-    def _gather_data(
-        self, message_files: List[Path]
-    ) -> Tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
+    def _gather_data(self, message_files: List[Path]) -> Tuple[CSVData, CSVData]:
         csv_data_messages = []
         csv_data_attachments = []
 
         for message_file in message_files:
-            file_content = cast(
-                List[Dict[str, Any]], self._file_io.read_json(message_file)
-            )
+            file_content = cast(ExportFileContent, self._file_io.read_json(message_file))
 
             csv_data = self._csv_data_generator.generate_messages(file_content)
             csv_data_messages.extend(csv_data)

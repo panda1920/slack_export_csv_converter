@@ -1,5 +1,4 @@
 import pytest
-from typing import List, Dict, Any
 from unittest.mock import MagicMock, create_autospec
 from pathlib import Path
 
@@ -7,6 +6,7 @@ from slack_export_csv_converter.export_dir import ExportDir
 from slack_export_csv_converter.file_io import FileIO
 from slack_export_csv_converter.csv_data_generator import CSVDataGenerator
 from slack_export_csv_converter.converter import Converter
+from slack_export_csv_converter.types import CSVData, ExportFileContent
 
 
 # mocks
@@ -59,7 +59,7 @@ def file_io() -> MagicMock:
     return file_io
 
 
-def create_test_json_file_content(path: Path) -> List[Dict[str, Any]]:
+def create_test_json_file_content(path: Path) -> ExportFileContent:
     return [{"json_content": path}]
 
 
@@ -82,16 +82,12 @@ TEST_MESSAGE_FIELDS = ["message_data"]
 TEST_ATTACHMENT_FIELDS = ["attachment_data"]
 
 
-def create_test_csv_data_messages(
-    file_content: List[Dict[str, Any]]
-) -> List[Dict[str, str]]:
+def create_test_csv_data_messages(file_content: ExportFileContent) -> CSVData:
     # refer to create_test_json_file_content() for what is in `file_content`
     return [{"message_data": file_content[0]["json_content"]}]
 
 
-def create_test_csv_data_attachments(
-    file_content: List[Dict[str, Any]]
-) -> List[Dict[str, str]]:
+def create_test_csv_data_attachments(file_content: ExportFileContent) -> CSVData:
     # refer to create_test_json_file_content() for what is in `file_content`
     return [{"attachment_data": file_content[0]["json_content"]}]
 

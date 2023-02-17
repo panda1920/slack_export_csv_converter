@@ -1,11 +1,11 @@
 import pytest
-from typing import Dict, Any, List
 from pathlib import Path
 import json
 
 # import logging
 
 from slack_export_csv_converter.csv_data_generator import CSVDataGenerator
+from slack_export_csv_converter.types import ExportFileContent, ExportFileElement
 
 
 # mocks
@@ -439,7 +439,7 @@ class TestGenerateAttachedFiles:
 
 
 # test data and creation functions
-def create_test_files() -> List[Dict[str, Any]]:
+def create_test_files() -> ExportFileContent:
     return [
         create_test_file_data(
             created=1672531200,
@@ -469,7 +469,7 @@ def create_test_files() -> List[Dict[str, Any]]:
     ]
 
 
-def create_test_message_data(**kwargs) -> Dict[str, Any]:
+def create_test_message_data(**kwargs) -> ExportFileElement:
     """Creates a dict that simulates exported slack message datastructure.
 
     Args:
@@ -481,7 +481,7 @@ def create_test_message_data(**kwargs) -> Dict[str, Any]:
     return {**DEFAULT_MESSAGE_DATA, **kwargs}
 
 
-def create_test_file_data(**kwargs) -> Dict[str, Any]:
+def create_test_file_data(**kwargs) -> ExportFileElement:
     """Creates a datastructure that represents files section of exported slack message.
 
     Args:s
@@ -493,7 +493,7 @@ def create_test_file_data(**kwargs) -> Dict[str, Any]:
     return {**DEFAULT_FILE_DATA, **kwargs}
 
 
-def create_test_user_data(**kwargs) -> Dict[str, Any]:
+def create_test_user_data(**kwargs) -> ExportFileElement:
     """Creates a user data found in slack export
 
     Args:
