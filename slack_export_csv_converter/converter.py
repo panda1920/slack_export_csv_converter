@@ -53,6 +53,8 @@ class Converter:
                 csv_data_attachments,
             )
 
+        logging.info("Slackエクスポートの変換処理が完了しました！")
+
     def _gather_data(self, message_files: List[Path]) -> Tuple[CSVData, CSVData]:
         csv_data_messages = []
         csv_data_attachments = []
@@ -66,7 +68,4 @@ class Converter:
             csv_data = self._csv_data_generator.generate_attachments(file_content)
             csv_data_attachments.extend(csv_data)
 
-        return (
-            csv_data_messages,
-            csv_data_attachments,
-        )
+        return (csv_data_messages, csv_data_attachments)
