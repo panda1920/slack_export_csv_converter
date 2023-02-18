@@ -21,7 +21,7 @@ def main(args):
         converter = setup_converter(path_args)
         converter.run()
     except Exception as e:
-        logging.critical(repr(e))
+        logging.critical(str(e))
         exit(1)
 
 
@@ -37,7 +37,7 @@ def sanitize_args(args: List[str]) -> List[str]:
 
 def validate_args(args: List[str]) -> List[str]:
     if len(args) < 1:
-        raise ConverterException("有効なパスを指定してください。")
+        raise ConverterException("有効なパスを1つまたは2つ指定してください。")
     if len(args) > 2:
         raise ConverterException("引数が多すぎます。有効なパスを1つまたは2つ指定してください。")
     if len(args) == 1:
