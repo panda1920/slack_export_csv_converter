@@ -87,7 +87,7 @@ class TestGenerateMessages:
             data = csv_data_generator.generate_messages(test_messages_data)
 
             for message in data:
-                assert message["ユーザー"] == user["real_name"]
+                assert message["ユーザー"] == user["profile"]["real_name"]
 
     def shouldGenerateUnknownUsernameWhenUserIdIsNotFound(
         self, csv_data_generator: CSVDataGenerator
@@ -283,11 +283,11 @@ class TestGenerateAttachedFiles:
             ),
         ]
         expected_usernames = [
-            TEST_USERS_DATA[0]["real_name"],
-            TEST_USERS_DATA[0]["real_name"],
-            TEST_USERS_DATA[1]["real_name"],
-            TEST_USERS_DATA[1]["real_name"],
-            TEST_USERS_DATA[2]["real_name"],
+            TEST_USERS_DATA[0]["profile"]["real_name"],
+            TEST_USERS_DATA[0]["profile"]["real_name"],
+            TEST_USERS_DATA[1]["profile"]["real_name"],
+            TEST_USERS_DATA[1]["profile"]["real_name"],
+            TEST_USERS_DATA[2]["profile"]["real_name"],
         ]
 
         data = csv_data_generator.generate_attachments(test_message_data)
@@ -518,10 +518,10 @@ with (TEST_DATA_DIR / "file.json").open("r", encoding="utf-8") as f:
     # default data used for create_test_file_data()
     DEFAULT_FILE_DATA = json.load(f)
 TEST_USERS_DATA = [
-    create_test_user_data(id="XXXXXXXXXXX", real_name="Default User"),
-    create_test_user_data(id="1234567890", real_name="John"),
-    create_test_user_data(id="2345678901", real_name="Mary"),
-    create_test_user_data(id="3456789012", real_name="Jane"),
+    create_test_user_data(id="XXXXXXXXXXX", profile={"real_name": "Default User"}),
+    create_test_user_data(id="1234567890", profile={"real_name": "John"}),
+    create_test_user_data(id="2345678901", profile={"real_name": "Mary"}),
+    create_test_user_data(id="3456789012", profile={"real_name": "Jane"}),
 ]
 TEST_USERS_PATH = Path("/Some/Path/To/Users.json")
 TEST_MESSAGES_FILE = Path("/Some/Path/To/Channel/messages.json")

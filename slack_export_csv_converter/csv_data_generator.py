@@ -15,7 +15,9 @@ class CSVDataGenerator:
     """
 
     def __init__(self, users_data: ExportFileContent) -> None:
-        self._userid_name_mapping = {user["id"]: user["real_name"] for user in users_data}
+        self._userid_name_mapping = {
+            user["id"]: user["profile"]["real_name"] for user in users_data
+        }
 
     def get_message_fields(self) -> CSVFields:
         """Get list of fields message csv file should have
