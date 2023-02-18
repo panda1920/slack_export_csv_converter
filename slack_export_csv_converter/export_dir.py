@@ -16,6 +16,7 @@ class ExportDir:
 
     def __init__(self, export_path: Path, save_path: Path) -> None:
         self._check_exists(export_path)
+        self._check_exists(save_path)
         self._export_path = export_path
         self._csv_path = save_path / f"csv_converted_{str(export_path.stem)}"
         self._channel_paths = [

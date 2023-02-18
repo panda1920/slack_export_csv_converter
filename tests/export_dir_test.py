@@ -10,14 +10,16 @@ class TestExportDir:
     TEST_CHANNELS = ["channel1", "チャンネル2", "channel 三"]
 
     @pytest.fixture(scope="function")
-    def export_path(self, tmp_path) -> Path:
+    def export_path(self, tmp_path: Path) -> Path:
         path = tmp_path / "XXX Slack export Jan 1 2022 - Jan 1 2023"
         path.mkdir()
         return path
 
     @pytest.fixture(scope="function")
-    def save_path(self, tmp_path) -> Path:
-        return tmp_path / "some" / "dir"
+    def save_path(self, tmp_path: Path) -> Path:
+        path = tmp_path / "some" / "dir"
+        path.mkdir(parents=True)
+        return path
 
     @pytest.fixture(scope="function")
     def export_dir(self, export_path, save_path) -> ExportDir:
@@ -41,6 +43,9 @@ class TestExportDir:
 
         with pytest.raises(ConverterException):
             ExportDir(nonexisting, save_path)
+
+        with pytest.raises(ConverterException):
+            ExportDir(export_path, nonexisting)
 
     def shouldReturnUsersFilePath(self, export_dir: ExportDir, export_path: Path):
         expected_users_file = export_path / ExportDir._USERS_FILE_NAME
