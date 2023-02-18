@@ -25,7 +25,7 @@ def setup_logger() -> None:
 
     project_path = Path(__file__).resolve().parents[1]
     file_handler = logging.FileHandler(
-        str(project_path / "slack_export_csv_converter.log"), encoding="utf-8"
+        str(project_path / "slack_export_csv_converter.log"), mode="w", encoding="utf-8"
     )
     file_formatter = logging.Formatter("[%(asctime)s %(levelname)s] %(message)s")
     file_handler.setFormatter(file_formatter)
