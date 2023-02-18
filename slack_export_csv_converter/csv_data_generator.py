@@ -15,7 +15,7 @@ class CSVDataGenerator:
     """
 
     def __init__(self, users_data: ExportFileContent) -> None:
-        self._userid_name_mapping = {user["id"]: user["name"] for user in users_data}
+        self._userid_name_mapping = {user["id"]: user["real_name"] for user in users_data}
 
     def get_message_fields(self) -> CSVFields:
         """Get list of fields message csv file should have
@@ -91,7 +91,7 @@ class CSVDataGenerator:
         elif field_name == "投稿日時":
             field_value = self._convert_ts(message["ts"])
         elif field_name == "ユーザー":
-            field_value = self._convert_userid(message["user"])
+            field_value = self._convert_userid(message.get("user", ""))
         elif field_name == "テキスト":
             field_value = message["text"]
         elif field_name == "thread_ts":
