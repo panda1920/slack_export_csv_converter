@@ -21,7 +21,7 @@ def main(args):
         converter = setup_converter(path_args)
         converter.run()
     except Exception as e:
-        logging.critical(str(e))
+        logging.error(str(e))
         exit(1)
 
 
@@ -52,7 +52,7 @@ def convert_args_to_path(args: List[str]) -> List[Path]:
 
 def setup_converter(paths: List[Path]) -> Converter:
     export_dir = ExportDir(*paths)
-    file_io = FileIO()
+    file_io = FileIO(csv_encoding="shift-jis")
     users_file_content = cast(
         ExportFileContent, file_io.read_json(export_dir.get_users_file())
     )
