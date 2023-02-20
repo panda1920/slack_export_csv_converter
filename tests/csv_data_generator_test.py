@@ -105,19 +105,28 @@ class TestGenerateMessages:
         for message in data:
             assert message["ユーザー"] == "Not available"
 
-    def shouldGenerateTextAsIs(self, csv_data_generator: CSVDataGenerator):
+    def shouldGenerateTextWithEscapedNewline(self, csv_data_generator: CSVDataGenerator):
         test_messages_data = [
-            create_test_message_data(text="Some text 1"),
-            create_test_message_data(text="Some text 2"),
-            create_test_message_data(text="Some text 3"),
+            create_test_message_data(text="Some text 1\n"),
+            create_test_message_data(text="\n\nSome text 2"),
+            create_test_message_data(
+                text="Some text 3\n\n\nAnother line\n\n\nAnd another!"
+            ),
+        ]
+        expected_messages = [
+            "Some text 1\\n",
+            "\\n\\nSome text 2",
+            "Some text 3\\n\\n\\nAnother line\\n\\n\\nAnd another!",
         ]
 
         data = csv_data_generator.generate_messages(test_messages_data)
 
-        for message, expected_message in zip(data, test_messages_data):
-            assert message["テキスト"] == expected_message["text"]
+        for message, expected_message in zip(data, expected_messages):
+            assert message["テキスト"] == expected_message
 
-    def shouldConvertUserMentionsToName(self, csv_data_generator: CSVDataGenerator):
+    def shouldGenerateTextWithUserMentionsConvertedToName(
+        self, csv_data_generator: CSVDataGenerator
+    ):
         test_messages_data = [
             create_test_message_data(text="Hi <@XXXXXXXXXXX>"),
             create_test_message_data(text="<@XXXXXXXXXXX> <@1234567890> <@2345678901>"),

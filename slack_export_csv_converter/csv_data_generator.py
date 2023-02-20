@@ -95,7 +95,7 @@ class CSVDataGenerator:
         elif field_name == "ユーザー":
             field_value = self._convert_userid(message.get("user", ""))
         elif field_name == "テキスト":
-            field_value = self._convert_user_mentions(message["text"])
+            field_value = self._convert_textcontent(message["text"])
         elif field_name == "thread_ts":
             field_value = message.get("thread_ts", "")
         elif field_name == "file_ts" and attachment is not None:
@@ -129,10 +129,17 @@ class CSVDataGenerator:
             name = path[path.rfind("/") + 1 :]
         return f"{date}_{name}"
 
+    def _convert_textcontent(self, text: str) -> str:
+        return self._escape_newlines(self._convert_user_mentions(text))
+
     def _convert_user_mentions(self, text: str) -> str:
         mention_pattern = compile("<@(.*?)>")
 
-        def convert_match_to_username(match: Match):
+        def convert_match_to_username(match: Match) -> str:
             return f"@{self._convert_userid(match.group(1))}"
 
         return sub(mention_pattern, convert_match_to_username, text)
+
+    @staticmethod
+    def _escape_newlines(text: str) -> str:
+        return text.replace("\n", "\\n")
