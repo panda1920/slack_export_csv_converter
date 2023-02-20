@@ -117,6 +117,23 @@ class TestGenerateMessages:
         for message, expected_message in zip(data, test_messages_data):
             assert message["テキスト"] == expected_message["text"]
 
+    def shouldConvertUserMentionsToName(self, csv_data_generator: CSVDataGenerator):
+        test_messages_data = [
+            create_test_message_data(text="Hi <@XXXXXXXXXXX>"),
+            create_test_message_data(text="<@XXXXXXXXXXX> <@1234567890> <@2345678901>"),
+            create_test_message_data(text="こんにちは <@3456789012>"),
+        ]
+        expected_messages = [
+            "Hi @Default User",
+            "@Default User @John @Mary",
+            "こんにちは @Jane",
+        ]
+
+        data = csv_data_generator.generate_messages(test_messages_data)
+
+        for message, expected_message in zip(data, expected_messages):
+            assert message["テキスト"] == expected_message
+
     def shouldPopoulateThreadFieldWhenMessageIsThreaded(
         self, csv_data_generator: CSVDataGenerator
     ):

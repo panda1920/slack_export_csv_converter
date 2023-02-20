@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 from typing import Union, Optional
 from datetime import datetime
-import re
+from re import sub, compile, Match
 import urllib.parse
 
 from .types import ExportFileContent, ExportFileElement, CSVData, CSVFields
@@ -95,7 +95,7 @@ class CSVDataGenerator:
         elif field_name == "ユーザー":
             field_value = self._convert_userid(message.get("user", ""))
         elif field_name == "テキスト":
-            field_value = message["text"]
+            field_value = self._convert_user_mentions(message["text"])
         elif field_name == "thread_ts":
             field_value = message.get("thread_ts", "")
         elif field_name == "file_ts" and attachment is not None:
@@ -122,9 +122,17 @@ class CSVDataGenerator:
         return self._userid_name_mapping.get(userid, "Not available")
 
     def _convert_filename(self, attachment: ExportFileElement) -> str:
-        date = re.sub("[- :]", "", self._convert_ts(attachment["created"]))
+        date = sub("[- :]", "", self._convert_ts(attachment["created"]))
         name = attachment.get("name")
         if not name:
             path = urllib.parse.urlparse(attachment["url_private"]).path
             name = path[path.rfind("/") + 1 :]
         return f"{date}_{name}"
+
+    def _convert_user_mentions(self, text: str) -> str:
+        mention_pattern = compile("<@(.*?)>")
+
+        def convert_match_to_username(match: Match):
+            return f"@{self._convert_userid(match.group(1))}"
+
+        return sub(mention_pattern, convert_match_to_username, text)
