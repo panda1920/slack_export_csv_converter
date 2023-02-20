@@ -84,8 +84,7 @@ class TestMain:
 
             main([TEST_PATH_1, TEST_PATH_2])
 
-            # file_io.assert_called_With(encoding="utf-8")
-            file_io.assert_called_with(csv_encoding="shift-jis")
+            file_io.assert_called_with(csv_encoding="utf-8")
 
     def shouldPassUsersFileContentToGenerator(self):
         with self.patch_dependencies() as patches:

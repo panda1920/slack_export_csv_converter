@@ -52,7 +52,7 @@ def convert_args_to_path(args: List[str]) -> List[Path]:
 
 def setup_converter(paths: List[Path]) -> Converter:
     export_dir = ExportDir(*paths)
-    file_io = FileIO(csv_encoding="shift-jis")
+    file_io = FileIO(csv_encoding="utf-8")
     users_file_content = cast(
         ExportFileContent, file_io.read_json(export_dir.get_users_file())
     )
