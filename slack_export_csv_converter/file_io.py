@@ -4,6 +4,7 @@ import logging
 from csv import DictWriter, QUOTE_ALL
 from pathlib import Path
 from typing import Any, Dict, Union
+from urllib.request import urlopen
 
 from .exceptions import ConverterException
 from .types import CSVData, CSVFields, ExportFileContent
@@ -78,4 +79,32 @@ class FileIO:
                     writer.writeheader()
                 writer.writerows(data)
         except Exception as e:
+            raise ConverterException(str(e))
+
+    def download(self, url: str, downloaded_file_path: Path) -> None:
+        """Download a file from specified url
+
+        Skips download if 'downloaded_file_path' already exists.
+
+        Args:
+            url: Where to download the file from
+            downloaded_file_path: The name/location of the downloaded file
+
+        Returns:
+            None
+        """
+        logging.debug(f"Downloading file {str(url)} as {str(downloaded_file_path)}")
+
+        if downloaded_file_path.exists():
+            logging.debug("Skipping download as the file already exists")
+            return
+
+        try:
+            with urlopen(url) as f:
+                data = f.read()
+
+            with downloaded_file_path.open("wb") as f:
+                f.write(data)
+        except Exception as e:
+            logging.warning(f"Failed to download from {str(url)}")
             raise ConverterException(str(e))

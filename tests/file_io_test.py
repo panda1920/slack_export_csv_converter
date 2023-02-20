@@ -1,16 +1,19 @@
 import pytest
 import json
 from pathlib import Path
+from unittest.mock import patch, MagicMock
+from contextlib import contextmanager
 
 from slack_export_csv_converter.file_io import FileIO
 from slack_export_csv_converter.exceptions import ConverterException
 
 
-class TestFileIO:
-    @pytest.fixture(scope="function")
-    def file_io(self) -> FileIO:
-        return FileIO()
+@pytest.fixture(scope="function")
+def file_io() -> FileIO:
+    return FileIO()
 
+
+class TestFileIOReadJson:
     def shouldReadJsonFile(self, tmp_path: Path, file_io: FileIO):
         test_json_data_string = """{
             "hello": "world",
@@ -77,6 +80,8 @@ class TestFileIO:
         with pytest.raises(ConverterException):
             file_io.read_json(test_file)
 
+
+class TestFileIOWriteCSV:
     def shouldWriteToCSVFile(self, tmp_path: Path, file_io: FileIO):
         test_csv_data = [
             {"column1": "hello world", "column2": 123, "column3": "2030-01-01"},
@@ -211,3 +216,60 @@ class TestFileIO:
         with test_file.open("r", encoding="shift-jis") as fp:
             file_content = fp.read()
             assert file_content == expected_file_content
+
+
+class TestFileIODownload:
+    @contextmanager
+    def patch_urlopen(self):
+        mock = MagicMock()
+        with patch(
+            "slack_export_csv_converter.file_io.urlopen", new=mock
+        ) as urlopen_mock:
+            urlopen_mock.return_value.__enter__.return_value.read.return_value = (
+                b"Some bytes"
+            )
+            yield urlopen_mock
+
+    @pytest.mark.flaky
+    def shouldDownloadFile(self, tmp_path: Path, file_io: FileIO):
+        image_url = "https://picsum.photos/100"
+        expected_file_path = tmp_path / "somge_img.jpg"
+
+        assert not expected_file_path.exists()
+
+        file_io.download(image_url, expected_file_path)
+
+        assert expected_file_path.exists()
+
+    def shouldSkipDownloadWhenFileExist(self, tmp_path: Path, file_io: FileIO):
+        image_url = "https://picsum.photos/100"
+        expected_file_path = tmp_path / "somge_img.jpg"
+        expected_file_path.touch()
+
+        with self.patch_urlopen() as urlopen_mock:
+            file_io.download(image_url, expected_file_path)
+
+            urlopen_mock.assert_not_called()
+
+    def shouldRaiseConverterExceptioNWhenSomethingGoesWrong(
+        self, tmp_path: Path, file_io: FileIO
+    ):
+        image_url = "https://picsum.photos/100"
+        expected_file_path = tmp_path / "somge_img.jpg"
+        error = Exception("Some error")
+
+        with self.patch_urlopen() as urlopen_mock:
+            urlopen_mock.reset_mock(side_effect=True, return_value=True)
+            urlopen_mock.side_effect = error
+
+            with pytest.raises(ConverterException):
+                file_io.download(image_url, expected_file_path)
+
+        with self.patch_urlopen() as urlopen_mock:
+            urlopen_mock.return_value.__enter__.return_value.read.reset_mock(
+                return_value=True
+            )
+            urlopen_mock.return_value.__enter__.return_value.read.side_effect = error
+
+            with pytest.raises(ConverterException):
+                file_io.download(image_url, expected_file_path)
