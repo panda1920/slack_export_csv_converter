@@ -1,12 +1,14 @@
 import pytest
 from unittest.mock import MagicMock, create_autospec
 from pathlib import Path
+from typing import List, Any
 
 from slack_export_csv_converter.export_dir import ExportDir
 from slack_export_csv_converter.file_io import FileIO
 from slack_export_csv_converter.csv_data_generator import CSVDataGenerator
 from slack_export_csv_converter.converter import Converter
 from slack_export_csv_converter.types import CSVData, ExportFileContent
+from slack_export_csv_converter.exceptions import ConverterException
 
 
 # mocks
@@ -43,9 +45,9 @@ def export_dir() -> MagicMock:
     export_dir = create_autospec(ExportDir, instance=True)
     export_dir.get_channels.return_value = TEST_CHANNELS
     # get_message_files() returns list of files
-    export_dir.get_message_files.side_effect = [
-        files for files in TEST_DIR_STRUCTURE.values()
-    ]
+    export_dir.get_message_files.side_effect = lambda channel: TEST_DIR_STRUCTURE.get(
+        channel
+    )
 
     return export_dir
 
@@ -72,24 +74,22 @@ def csv_data_generator() -> MagicMock:
     csv_data_generator.generate_messages.side_effect = create_test_csv_data_messages
 
     csv_data_generator.get_attachment_fields.return_value = TEST_MESSAGE_FIELDS
-    # generate_attachments() returns tuple based on argument is receives
-    csv_data_generator.generate_attachments.side_effect = create_test_csv_data_attachments
+    csv_data_generator.generate_attachments.side_effect = TEST_CSV_DATA_ATTACHMENTS
 
     return csv_data_generator
 
 
 TEST_MESSAGE_FIELDS = ["message_data"]
 TEST_ATTACHMENT_FIELDS = ["attachment_data"]
+TEST_CSV_DATA_ATTACHMENTS = [
+    [{"url": f"https://example.com/{x}.jpg", "ファイル名": f"20230101000000{x}.jpg"}]
+    for x in range(len(TEST_MESSAGE_FILES))
+]
 
 
 def create_test_csv_data_messages(file_content: ExportFileContent) -> CSVData:
     # refer to create_test_json_file_content() for what is in `file_content`
     return [{"message_data": file_content[0]["json_content"]}]
-
-
-def create_test_csv_data_attachments(file_content: ExportFileContent) -> CSVData:
-    # refer to create_test_json_file_content() for what is in `file_content`
-    return [{"attachment_data": file_content[0]["json_content"]}]
 
 
 @pytest.fixture(scope="function")
@@ -135,9 +135,9 @@ class TestConverterRun:
         self, converter: Converter, export_dir: MagicMock, file_io: MagicMock
     ):
         # get_message_files() returns list of files
-        export_dir.get_message_files.side_effect = [
-            files for files in TEST_DIR_STRUCTURE.values()
-        ]
+        export_dir.get_message_files.side_effect = lambda channel: TEST_DIR_STRUCTURE.get(
+            channel
+        )
 
         converter.run()
 
@@ -220,10 +220,13 @@ class TestConverterRun:
             lambda channel: Path("/path/to") / channel
         )
         csv_data_generator.get_attachment_fields.return_value = TEST_ATTACHMENT_FIELDS
-        # generate_attachments() returns tuple based on argument is receives
-        csv_data_generator.generate_attachments.side_effect = (
-            create_test_csv_data_attachments
-        )
+        csv_data_generator.generate_attachments.side_effect = TEST_CSV_DATA_ATTACHMENTS
+        expected_attachments_per_channel = {
+            TEST_CHANNELS[0]: TEST_CSV_DATA_ATTACHMENTS[:3],
+            TEST_CHANNELS[1]: TEST_CSV_DATA_ATTACHMENTS[3:6],
+            TEST_CHANNELS[2]: TEST_CSV_DATA_ATTACHMENTS[6:9],
+            TEST_CHANNELS[3]: TEST_CSV_DATA_ATTACHMENTS[9:],
+        }
 
         converter.run()
 
@@ -231,15 +234,71 @@ class TestConverterRun:
             expected_file_path = Path("/path/to") / channel / "attachments.csv"
             expected_fields = TEST_ATTACHMENT_FIELDS
             # combine data generated from files belonging to the channel
-            expected_data = [
-                create_test_csv_data_attachments(
-                    create_test_json_file_content(file_path)
-                )[0]
-                for file_path in TEST_DIR_STRUCTURE[channel]
-            ]
+            expected_attachments = expected_attachments_per_channel[channel]
+            expected_data = [attachment[0] for attachment in expected_attachments]
 
             file_io.csv_write.assert_any_call(
                 expected_file_path,
                 expected_fields,
                 expected_data,
             )
+
+    def shouldDownloadGatheredFilesPerChannel(
+        self,
+        converter: MagicMock,
+        export_dir: MagicMock,
+        csv_data_generator: MagicMock,
+        file_io: MagicMock,
+    ):
+        attachment_paths = {
+            TEST_CHANNELS[0]: Path(f"/some/path/to/save/attachments/{TEST_CHANNELS[0]}"),
+            TEST_CHANNELS[1]: Path(f"/some/path/to/save/attachments/{TEST_CHANNELS[1]}"),
+            TEST_CHANNELS[2]: Path(f"/some/path/to/save/attachments/{TEST_CHANNELS[2]}"),
+            TEST_CHANNELS[3]: Path(f"/some/path/to/save/attachments/{TEST_CHANNELS[3]}"),
+        }
+        export_dir.get_attachments_path.side_effect = lambda channel: attachment_paths[
+            channel
+        ]
+        expected_attachments_per_channel = {
+            TEST_CHANNELS[0]: TEST_CSV_DATA_ATTACHMENTS[:3],
+            TEST_CHANNELS[1]: TEST_CSV_DATA_ATTACHMENTS[3:6],
+            TEST_CHANNELS[2]: TEST_CSV_DATA_ATTACHMENTS[6:9],
+            TEST_CHANNELS[3]: TEST_CSV_DATA_ATTACHMENTS[9:],
+        }
+
+        converter.run()
+
+        assert file_io.download.call_count == len(TEST_CSV_DATA_ATTACHMENTS)
+        for channel in TEST_CHANNELS:
+            for attachment in expected_attachments_per_channel[channel]:
+                expected_url = attachment[0]["url"]
+                expected_path = attachment_paths[channel] / attachment[0]["ファイル名"]
+
+                file_io.download.assert_any_call(expected_url, expected_path)
+
+    def shouldContinueDownloadWhenSomeFails(
+        self,
+        converter: MagicMock,
+        export_dir: MagicMock,
+        csv_data_generator: MagicMock,
+        file_io: MagicMock,
+    ):
+        attachment_paths = {
+            TEST_CHANNELS[0]: Path(f"/some/path/to/save/attachments/{TEST_CHANNELS[0]}"),
+            TEST_CHANNELS[1]: Path(f"/some/path/to/save/attachments/{TEST_CHANNELS[1]}"),
+            TEST_CHANNELS[2]: Path(f"/some/path/to/save/attachments/{TEST_CHANNELS[2]}"),
+            TEST_CHANNELS[3]: Path(f"/some/path/to/save/attachments/{TEST_CHANNELS[3]}"),
+        }
+        export_dir.get_attachments_path.side_effect = lambda channel: attachment_paths[
+            channel
+        ]
+        side_effect_with_errors: List[Any] = [
+            None for x in range(len(TEST_MESSAGE_FILES))
+        ]
+        side_effect_with_errors[2] = ConverterException("Some error")
+        side_effect_with_errors[4] = ConverterException("Some error")
+        file_io.download.side_effect = side_effect_with_errors
+
+        converter.run()
+
+        assert file_io.download.call_count == len(TEST_CSV_DATA_ATTACHMENTS)

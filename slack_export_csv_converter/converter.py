@@ -38,20 +38,11 @@ class Converter:
         for channel in channels:
             logging.info(f"チャンネル #{str(channel)} を変換中...")
 
-            csv_path = self._export_dir.get_csv_channel_path(channel)
             message_files = self._export_dir.get_message_files(channel)
             (csv_data_messages, csv_data_attachments) = self._gather_data(message_files)
 
-            self._file_io.csv_write(
-                csv_path / "messages.csv",
-                self._csv_data_generator.get_message_fields(),
-                csv_data_messages,
-            )
-            self._file_io.csv_write(
-                csv_path / "attachments.csv",
-                self._csv_data_generator.get_attachment_fields(),
-                csv_data_attachments,
-            )
+            self._write_csv_data(csv_data_messages, csv_data_attachments, channel)
+            self._download_attachments(csv_data_attachments, channel)
 
         logging.info("Slackエクスポートの変換処理が完了しました！")
 
@@ -69,3 +60,32 @@ class Converter:
             csv_data_attachments.extend(csv_data)
 
         return (csv_data_messages, csv_data_attachments)
+
+    def _write_csv_data(
+        self, csv_data_messages: CSVData, csv_data_attachments: CSVData, channel: str
+    ) -> None:
+        save_location = self._export_dir.get_csv_channel_path(channel)
+
+        self._file_io.csv_write(
+            save_location / "messages.csv",
+            self._csv_data_generator.get_message_fields(),
+            csv_data_messages,
+        )
+        self._file_io.csv_write(
+            save_location / "attachments.csv",
+            self._csv_data_generator.get_attachment_fields(),
+            csv_data_attachments,
+        )
+
+    def _download_attachments(self, csv_data_attachments: CSVData, channel: str) -> None:
+        save_location = self._export_dir.get_attachments_path(channel)
+
+        for attachment in csv_data_attachments:
+            url = attachment["url"]
+            file_path = save_location / attachment["ファイル名"]
+
+            try:
+                self._file_io.download(url, file_path)
+            except Exception:
+                # even if download fails just continue with rest of downloads
+                continue
