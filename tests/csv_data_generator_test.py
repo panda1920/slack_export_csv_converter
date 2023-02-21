@@ -219,12 +219,11 @@ class TestGetAttachmentFields:
     def shouldReturnFieldNames(self, csv_data_generator: CSVDataGenerator):
         fields = csv_data_generator.get_attachment_fields()
 
-        assert "file_ts" in fields
+        assert "ファイル名" in fields
         assert "アップロード日時" in fields
         assert "ユーザー" in fields
         assert "message_ts" in fields
         assert "url" in fields
-        assert "ファイル名" in fields
 
 
 class TestGenerateAttachedFiles:
@@ -251,14 +250,13 @@ class TestGenerateAttachedFiles:
         data = csv_data_generator.generate_attachments(test_message_data)
 
         for attachment in data:
-            assert "file_ts" in attachment
+            assert "ファイル名" in attachment
             assert "アップロード日時" in attachment
             assert "ユーザー" in attachment
             assert "message_ts" in attachment
             assert "url" in attachment
-            assert "ファイル名" in attachment
 
-    def shouldGenerateTsAsStringFromCreatedField(
+    def shouldGenerateFilenameFromDatetimeSizeAndName(
         self, csv_data_generator: CSVDataGenerator
     ):
         test_files = create_test_files()
@@ -267,11 +265,44 @@ class TestGenerateAttachedFiles:
             create_test_message_data(text="Some text 2", files=test_files[2:4]),
             create_test_message_data(text="Some text 3", files=test_files[4:]),
         ]
+        expected_filenames = [
+            f"{20230101090000}_{test_files[0]['size']}_{test_files[0]['name']}",
+            f"{20230101090001}_{test_files[1]['size']}_{test_files[1]['name']}",
+            f"{20230101090002}_{test_files[2]['size']}_{test_files[2]['name']}",
+            f"{20230101090003}_{test_files[3]['size']}_{test_files[3]['name']}",
+            f"{20230101090004}_{test_files[4]['size']}_{test_files[4]['name']}",
+        ]
 
         data = csv_data_generator.generate_attachments(test_message_data)
 
-        for attachment, expected in zip(data, test_files):
-            assert attachment["file_ts"] == str(expected["created"])
+        for attachment, expected_filename in zip(data, expected_filenames):
+            assert attachment["ファイル名"] == expected_filename
+
+    def shouldGenerateFilenameFromUrlWhenNameNotAvailable(
+        self, csv_data_generator: CSVDataGenerator
+    ):
+        test_files = create_test_files()
+        for file in test_files[0:3]:
+            file["name"] = None
+        for file in test_files[3:]:
+            del file["name"]
+        test_message_data = [
+            create_test_message_data(text="Some text 1", files=test_files[0:2]),
+            create_test_message_data(text="Some text 2", files=test_files[2:4]),
+            create_test_message_data(text="Some text 3", files=test_files[4:]),
+        ]
+        expected_filenames = [
+            f"{20230101090000}_{test_files[0]['size']}_file1.png",
+            f"{20230101090001}_{test_files[1]['size']}_file2.png",
+            f"{20230101090002}_{test_files[2]['size']}_file3.png",
+            f"{20230101090003}_{test_files[3]['size']}_file4.png",
+            f"{20230101090004}_{test_files[4]['size']}_file5.png",
+        ]
+
+        data = csv_data_generator.generate_attachments(test_message_data)
+
+        for attachment, expected_filename in zip(data, expected_filenames):
+            assert attachment["ファイル名"] == expected_filename
 
     def shouldConvertTimestampToLocalDateTimeString(
         self, csv_data_generator: CSVDataGenerator
@@ -388,52 +419,6 @@ class TestGenerateAttachedFiles:
         for attachment, test_file_data in zip(data, test_files):
             assert attachment["url"] == test_file_data["url_private"]
 
-    def shouldGenerateFilename(self, csv_data_generator: CSVDataGenerator):
-        test_files = create_test_files()
-        test_message_data = [
-            create_test_message_data(text="Some text 1", files=test_files[0:2]),
-            create_test_message_data(text="Some text 2", files=test_files[2:4]),
-            create_test_message_data(text="Some text 3", files=test_files[4:]),
-        ]
-        expected_filenames = [
-            f"{20230101090000}_{test_files[0]['name']}",
-            f"{20230101090001}_{test_files[1]['name']}",
-            f"{20230101090002}_{test_files[2]['name']}",
-            f"{20230101090003}_{test_files[3]['name']}",
-            f"{20230101090004}_{test_files[4]['name']}",
-        ]
-
-        data = csv_data_generator.generate_attachments(test_message_data)
-
-        for attachment, expected_filename in zip(data, expected_filenames):
-            assert attachment["ファイル名"] == expected_filename
-
-    def shouldGenerateFilenameFromUrlWhenNameNotAvailable(
-        self, csv_data_generator: CSVDataGenerator
-    ):
-        test_files = create_test_files()
-        for file in test_files[0:3]:
-            file["name"] = None
-        for file in test_files[3:]:
-            del file["name"]
-        test_message_data = [
-            create_test_message_data(text="Some text 1", files=test_files[0:2]),
-            create_test_message_data(text="Some text 2", files=test_files[2:4]),
-            create_test_message_data(text="Some text 3", files=test_files[4:]),
-        ]
-        expected_filenames = [
-            f"{20230101090000}_file1.png",
-            f"{20230101090001}_file2.png",
-            f"{20230101090002}_file3.png",
-            f"{20230101090003}_file4.png",
-            f"{20230101090004}_file5.png",
-        ]
-
-        data = csv_data_generator.generate_attachments(test_message_data)
-
-        for attachment, expected_filename in zip(data, expected_filenames):
-            assert attachment["ファイル名"] == expected_filename
-
     def shouldNotGenerateDataWhenFilesNotAvailable(
         self, csv_data_generator: CSVDataGenerator
     ):
@@ -473,26 +458,31 @@ def create_test_files() -> ExportFileContent:
             created=1672531200,
             url_private="https://example.com/nested/path/file1.png?hello=world#123123",
             name="file1.png",
+            size=11111,
         ),
         create_test_file_data(
             created=1672531201,
             url_private="https://example.com/nested/path/file2.png?hello=world#123123",
             name="file2.png",
+            size=22222,
         ),
         create_test_file_data(
             created=1672531202,
             url_private="https://example.com/nested/path/file3.png?hello=world#123123",
             name="file3.png",
+            size=33333,
         ),
         create_test_file_data(
             created=1672531203,
             url_private="https://example.com/nested/path/file4.png?hello=world#123123",
             name="file4.png",
+            size=44444,
         ),
         create_test_file_data(
             created=1672531204,
             url_private="https://example.com/nested/path/file5.png?hello=world#123123",
             name="file5.png",
+            size=55555,
         ),
     ]
 

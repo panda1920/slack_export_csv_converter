@@ -28,13 +28,13 @@ class CSVDataGenerator:
         return ["ts", "投稿日時", "ユーザー", "テキスト", "thread_ts"]
 
     def generate_messages(self, messages_data: ExportFileContent) -> CSVData:
-        """Generates csv data from messages file
+        """Generates csv data from slack export message file
 
         Args:
-            messages_data: data retrieved from messages file
+            messages_data: data retrieved from slack export messages file
 
         Returns:
-            Tuple of fields and data
+            List of row data
         """
         # logging.warning(str(messages-data))
         generated_messages = []
@@ -58,9 +58,17 @@ class CSVDataGenerator:
         Returns:
             List of fields
         """
-        return ["file_ts", "アップロード日時", "ユーザー", "message_ts", "url", "ファイル名"]
+        return ["ファイル名", "アップロード日時", "ユーザー", "message_ts", "url"]
 
     def generate_attachments(self, messages_data: ExportFileContent) -> CSVData:
+        """Generates csv data for attachment files from slack export message file
+
+        Args:
+            messages_data: data retrieved from slack export messages file
+
+        Returns:
+            List of row data
+        """
         generated_attachments = []
         fields = self.get_attachment_fields()
 
@@ -98,8 +106,6 @@ class CSVDataGenerator:
             field_value = self._convert_textcontent(message["text"])
         elif field_name == "thread_ts":
             field_value = message.get("thread_ts", "")
-        elif field_name == "file_ts" and attachment is not None:
-            field_value = str(attachment["created"])
         elif field_name == "アップロード日時" and attachment is not None:
             field_value = self._convert_ts(attachment["created"])
         elif field_name == "message_ts":
@@ -123,11 +129,12 @@ class CSVDataGenerator:
 
     def _convert_filename(self, attachment: ExportFileElement) -> str:
         date = sub("[- :]", "", self._convert_ts(attachment["created"]))
+        size = attachment["size"]
         name = attachment.get("name")
         if not name:
             path = urllib.parse.urlparse(attachment["url_private"]).path
             name = path[path.rfind("/") + 1 :]
-        return f"{date}_{name}"
+        return f"{date}_{size}_{name}"
 
     def _convert_textcontent(self, text: str) -> str:
         return self._escape_newlines(self._convert_user_mentions(text))
