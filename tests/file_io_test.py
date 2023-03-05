@@ -230,7 +230,7 @@ class TestFileIODownload:
             )
             yield urlopen_mock
 
-    @pytest.mark.flaky
+    @pytest.mark.skip()
     def shouldDownloadFile(self, tmp_path: Path, file_io: FileIO):
         image_url = "https://picsum.photos/100"
         expected_file_path = tmp_path / "somge_img.jpg"

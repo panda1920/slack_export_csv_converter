@@ -45,6 +45,7 @@ class FileIO:
             with file_path.open("r", encoding="utf-8") as fp:
                 return json.load(fp)
         except json.JSONDecodeError as e:
+            logging.warning(f"Failed to read from file {str(file_path)}")
             raise ConverterException(str(e))
 
     def csv_write(
@@ -79,6 +80,7 @@ class FileIO:
                     writer.writeheader()
                 writer.writerows(data)
         except Exception as e:
+            logging.warning(f"Failed to write to file {str(file_path)}")
             raise ConverterException(str(e))
 
     def download(self, url: str, downloaded_file_path: Path) -> None:
@@ -93,11 +95,13 @@ class FileIO:
         Returns:
             None
         """
-        logging.debug(f"Downloading file {str(url)} as {str(downloaded_file_path)}")
-
         if downloaded_file_path.exists():
-            logging.debug("Skipping download as the file already exists")
+            logging.debug(
+                f"Skipping download of file {str(downloaded_file_path)} as it already exists"
+            )
             return
+
+        logging.debug(f"Downloading from {url} as {str(downloaded_file_path)}")
 
         try:
             with urlopen(url) as f:
@@ -106,5 +110,5 @@ class FileIO:
             with downloaded_file_path.open("wb") as f:
                 f.write(data)
         except Exception as e:
-            logging.warning(f"Failed to download from {str(url)}")
+            logging.warning(f"Failed to download from {url}")
             raise ConverterException(str(e))

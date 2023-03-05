@@ -27,6 +27,7 @@ class Converter:
         Does the following things:
         - Converts json message files to csv
         - Gathers attachment file info to a separate csv
+        - Downloads attachment files
 
         Returns:
             None
